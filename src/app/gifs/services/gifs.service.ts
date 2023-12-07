@@ -11,10 +11,24 @@ export class GifsService {
   private apiKey: string = 'glCEiBo7Hg3dZB1vfH6gD5QixLERwgCw';
   private serviceUrl: string = 'https://api.giphy.com/v1/gifs';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    this.loadLocalStorage();
+  }
 
   get tagsHistory() {
     return [...this._tagsHistory];
+  }
+
+  private saveLocalStorage() {
+    localStorage.setItem('history', JSON.stringify(this._tagsHistory));
+  }
+
+  private loadLocalStorage() {
+    if (!localStorage.getItem('history')) return;
+    this._tagsHistory = JSON.parse(localStorage.getItem('history')!);
+
+    if (this._tagsHistory.length === 0) return;
+    this.searchTag(this.tagsHistory[0]);
   }
 
   private organizedHistory(tag: string) {
@@ -25,17 +39,18 @@ export class GifsService {
 
     this._tagsHistory.unshift(tag);
     this._tagsHistory = this._tagsHistory.splice(0, 10);
+    this.saveLocalStorage();
   }
 
   async searchTag(tag: string): Promise<void> {
     if (tag.length === 0) return;
 
+    this.organizedHistory(tag);
+
     const params = new HttpParams()
       .set('api_key', this.apiKey)
       .set('limit', 10)
       .set('q', tag);
-
-    this.organizedHistory(tag);
 
     await this.http
       .get<SearchResponse>(`${this.serviceUrl}/search`, { params })
@@ -43,6 +58,6 @@ export class GifsService {
         this.gifList = response.data;
       });
 
-    console.log(this.gifList);
+    //console.log(this.gifList);
   }
 }
