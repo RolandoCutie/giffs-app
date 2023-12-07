@@ -27,7 +27,7 @@ export class GifsService {
     this._tagsHistory = this._tagsHistory.splice(0, 10);
   }
 
-  searchTag(tag: string): void {
+  async searchTag(tag: string): Promise<void> {
     if (tag.length === 0) return;
 
     const params = new HttpParams()
@@ -37,10 +37,12 @@ export class GifsService {
 
     this.organizedHistory(tag);
 
-    this.http
+    await this.http
       .get<SearchResponse>(`${this.serviceUrl}/search`, { params })
       .subscribe((response) => {
         this.gifList = response.data;
       });
+
+    console.log(this.gifList);
   }
 }
